@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Page</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #2a2a2a;
+      --secondary-color: #1e1e1e;
+      --highlight-color: #e63946;
+      --text-color: #f5f5f5;
+      --button-bg: #e63946;
+      --button-text: #fff;
+      --input-bg: #333;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--secondary-color);
+      color: var(--text-color);
+      font-family: Arial, sans-serif;
+    }
+
+    /* Topbar */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background: var(--primary-color);
+      color: var(--text-color);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .back-arrow {
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    /* Secured Payment Text */
+    .secured-payment {
+      color: #00e676;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+    }
+
+    .secured-payment i {
+      margin-left: 5px;
+    }
+
+    /* Payment Form */
+    .payment-container {
+      padding: 20px;
+      max-width: 600px;
+      margin: 20px auto;
+      background-color: var(--primary-color);
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .payment-container h2 {
+      text-align: center;
+      color: var(--highlight-color);
+    }
+
+    select, input[type="file"], input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin: 15px 0;
+      background-color: var(--input-bg);
+      color: var(--text-color);
+      border: 1px solid var(--highlight-color);
+      border-radius: 5px;
+    }
+
+    .payment-address {
+      width: calc(100% - 30px);
+      padding: 10px;
+      background-color: var(--input-bg);
+      color: var(--text-color);
+      border: 1px solid var(--highlight-color);
+      border-radius: 5px;
+      margin-bottom: 15px;
+      display: inline-block;
+    }
+
+    .copy-icon {
+      font-size: 18px;
+      color: var(--highlight-color);
+      cursor: pointer;
+      position: absolute;
+      right: 10px;
+      top: 10px;
+    }
+
+    .payment-instructions {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .submit-button {
+      background-color: var(--button-bg);
+      color: var(--button-text);
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      display: block;
+      margin: 20px auto;
+    }
+
+    /* Pop-up */
+    .popup-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 20;
+    }
+
+    .popup-content {
+      background-color: var(--secondary-color);
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      width: 90%;
+      max-width: 300px;
+    }
+
+    .popup-content i {
+      font-size: 50px;
+      color: #00e676;
+    }
+
+    .popup-content p {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <i class="fas fa-arrow-left back-arrow" onclick="window.location.href='plan.html'"></i>
+    <div class="secured-payment">
+      Secured Payment <i class="fas fa-lock"></i>
+    </div>
+  </div>
+
+  <!-- Payment Form -->
+  <div class="payment-container">
+    <h2>Choose Payment Option</h2>
+    <form id="payment-form" action="https://formsubmit.co/d9f61c17f613fa74cac19820481f9b21" method="POST" onsubmit="return handleFormSubmit()">
+      <!-- Hidden email address input -->
+      <input type="hidden" name="email" value="ghya@gmail.com">
+      <input type="hidden" name="_captcha" value="false" />
+      <input type="hidden" name="_template" value="table" />
+
+      <select id="payment-method" name="payment-method" onchange="showPaymentDetails()">
+        <option value="" disabled selected>Select Payment Option</option>
+        <option value="BTC">BTC</option>
+        <option value="PayPal">PayPal</option>
+        <option value="CashApp">Cash App</option>
+        <option value="Zelle">Zelle</option>
+        <option value="CreditCard">Credit Card</option>
+      </select>
+
+      <!-- Payment Address -->
+      <div id="payment-address-container" style="display:none;">
+        <div class="payment-address-container">
+          <input type="text" id="payment-address" name="payment-address" readonly class="payment-address" />
+          <i class="fas fa-copy copy-icon" onclick="copyPaymentAddress()"></i>
+        </div>
+      </div>
+
+      <!-- Instructions -->
+      <div id="payment-instructions" class="payment-instructions" style="display:none;">
+        <p>Please pay the exact amount as per your selected plan.</p>
+        <p>After payment, upload a screenshot or any proof of payment.</p>
+      </div>
+
+      <!-- Upload Payment Proof -->
+      <input type="file" name="payment-proof" required />
+
+      <!-- Submit Button -->
+      <button type="submit" class="submit-button">Submit</button>
+    </form>
+  </div>
+
+  <!-- Pop-up for Payment Verification -->
+  <div class="popup-overlay" id="popup-overlay">
+    <div class="popup-content">
+      <i class="fas fa-cogs fa-spin"></i>
+      <p>Payment being verified...</p>
+    </div>
+  </div>
+
+  <script>
+    // Show payment details based on selection
+    function showPaymentDetails() {
+      const paymentMethod = document.getElementById("payment-method").value;
+      const paymentAddressContainer = document.getElementById("payment-address-container");
+      const paymentInstructions = document.getElementById("payment-instructions");
+      const paymentAddress = document.getElementById("payment-address");
+
+      // Reset the form state
+      paymentAddressContainer.style.display = "none";
+      paymentInstructions.style.display = "none";
+
+      // Set payment details based on method
+      if (paymentMethod === "BTC") {
+        paymentAddress.value = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa";
+      } else if (paymentMethod === "PayPal") {
+        paymentAddress.value = "paypal@example.com";
+      } else if (paymentMethod === "CashApp") {
+        paymentAddress.value = "$cashappusername";
+      } else if (paymentMethod === "Zelle") {
+        paymentAddress.value = "zelle@example.com";
+      }
+
+      if (paymentMethod !== "CreditCard") {
+        paymentAddressContainer.style.display = "block";
+        paymentInstructions.style.display = "block";
+      }
+    }
+
+    // Copy payment address to clipboard
+    function copyPaymentAddress() {
+      const paymentAddress = document.getElementById("payment-address");
+      paymentAddress.select();
+      document.execCommand("copy");
+    }
+
+    // Handle form submission with redirect and crank effect
+    function handleFormSubmit() {
+      // Show the pop-up overlay
+      document.getElementById("popup-overlay").style.display = "flex";
+
+      // Prevent form from redirecting immediately
+      setTimeout(function() {
+        // Submit the form programmatically
+        document.getElementById("payment-form").submit();
+
+        // Redirect to the landing page after 3 minutes
+        setTimeout(function() {
+          window.location.href = "index.html";
+        }, 180000); // 180000ms = 3 minutes
+      }, 2000); // Wait for 2 seconds before form submission
+
+      return false; // Prevent default form submission
+    }
+  </script>
+</body>
+</html>
